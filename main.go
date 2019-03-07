@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -28,13 +28,17 @@ func main() {
 	}
 
 	targetFolders := config.Target
+
+	// 対象ディレクトリ内のファイルを削除する
 	for _, f := range targetFolders.Folders {
+		os.Chdir(f)
+
 		files, err := ioutil.ReadDir(f)
 		if err != nil {
 			panic(err)
 		}
 		for _, file := range files {
-			fmt.Println(file.Name())
+			os.RemoveAll(file.Name())
 		}
 
 	}
