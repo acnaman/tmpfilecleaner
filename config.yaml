@@ -1,4 +1,7 @@
 target: 
-    folders: test
+    folders:
+        - test1
+        - test2
+        - test3
 
 

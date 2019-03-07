@@ -13,7 +13,7 @@ type Config struct {
 }
 
 type TargetConfig struct {
-	folders string `yaml:"folders"`
+	Folders []string `yaml:"folders"`
 }
 
 func main() {
@@ -28,6 +28,7 @@ func main() {
 	}
 
 	targetFolders := config.Target
-
-	fmt.Println(targetFolders.folders)
+	for _, f := range targetFolders.Folders {
+		fmt.Println(f)
+	}
 }
