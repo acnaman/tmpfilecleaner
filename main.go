@@ -29,6 +29,13 @@ func main() {
 
 	targetFolders := config.Target
 	for _, f := range targetFolders.Folders {
-		fmt.Println(f)
+		files, err := ioutil.ReadDir(f)
+		if err != nil {
+			panic(err)
+		}
+		for _, file := range files {
+			fmt.Println(file.Name())
+		}
+
 	}
 }
