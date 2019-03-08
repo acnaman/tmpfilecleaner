@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -25,11 +24,6 @@ func main() {
 	app.Usage = ""
 	app.Version = "0.1"
 
-	// before
-	app.Before = func(c *cli.Context) error {
-		fmt.Println("-- Before --")
-		return nil
-	}
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "file, f",
@@ -40,8 +34,6 @@ func main() {
 
 	app.Action = func(c *cli.Context) error {
 		configfile := c.String("file")
-
-		fmt.Println(configfile)
 
 		data, err := ioutil.ReadFile(configfile)
 		if err != nil {

@@ -1,0 +1,7 @@
+target: 
+    folders:
+    # テスト用フォルダー
+        - C:\tmp2
+        - C:\tmp3
+
+

@@ -1,6 +1,6 @@
 target: 
-    folders:
-        - C:\tmp2
-        - C:\tmp3
+    folders: 
+#        - /path/to/the/target/folder1
+#        - /path/to/the/target/folder2
 
 
