@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/urfave/cli"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -17,29 +20,55 @@ type TargetConfig struct {
 }
 
 func main() {
-	data, err := ioutil.ReadFile("config.yaml")
-	if err != nil {
-		panic(err)
+	app := cli.NewApp()
+	app.Name = "TMP File Cleaner"
+	app.Usage = ""
+	app.Version = "0.1"
+
+	// before
+	app.Before = func(c *cli.Context) error {
+		fmt.Println("-- Before --")
+		return nil
 	}
-	var config Config
-	yaml.Unmarshal(data, &config)
-	if err != nil {
-		log.Fatalf("cannot unmarshal data: %v", err)
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "file, f",
+			Value: "config.yaml",
+			Usage: "Config file(YAML)",
+		},
 	}
 
-	targetFolders := config.Target
+	app.Action = func(c *cli.Context) error {
+		configfile := c.String("file")
 
-	// 対象ディレクトリ内のファイルを削除する
-	for _, f := range targetFolders.Folders {
-		os.Chdir(f)
+		fmt.Println(configfile)
 
-		files, err := ioutil.ReadDir(f)
+		data, err := ioutil.ReadFile(configfile)
 		if err != nil {
 			panic(err)
 		}
-		for _, file := range files {
-			os.RemoveAll(file.Name())
+		var config Config
+		yaml.Unmarshal(data, &config)
+		if err != nil {
+			log.Fatalf("cannot unmarshal data: %v", err)
 		}
 
+		targetFolders := config.Target
+
+		// 対象ディレクトリ内のファイルを削除する
+		for _, f := range targetFolders.Folders {
+			os.Chdir(f)
+
+			files, err := ioutil.ReadDir(f)
+			if err != nil {
+				panic(err)
+			}
+			for _, file := range files {
+				os.RemoveAll(file.Name())
+			}
+		}
+		return nil
 	}
+
+	app.Run(os.Args)
 }
