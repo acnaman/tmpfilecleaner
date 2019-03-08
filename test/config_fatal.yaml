@@ -1,0 +1,4 @@
+target: 
+    folders:
+      - /NOT/EXIST/
+      - /NOT/EXIST2

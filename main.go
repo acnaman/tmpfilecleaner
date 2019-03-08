@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"fmt"
 
 	"github.com/urfave/cli"
 
@@ -37,7 +38,7 @@ func main() {
 
 		data, err := ioutil.ReadFile(configfile)
 		if err != nil {
-			panic(err)
+			log.Fatalf("cannot read config file: %v", err)
 		}
 		var config Config
 		yaml.Unmarshal(data, &config)
@@ -53,7 +54,7 @@ func main() {
 
 			files, err := ioutil.ReadDir(f)
 			if err != nil {
-				panic(err)
+				fmt.Println("warning: cannot read directory" + f)
 			}
 			for _, file := range files {
 				os.RemoveAll(file.Name())
