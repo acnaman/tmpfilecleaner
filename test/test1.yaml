@@ -1,0 +1,6 @@
+target: 
+    folders:
+    # テスト用フォルダー
+        - test/deletedir/1
+
+
