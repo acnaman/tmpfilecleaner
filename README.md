@@ -12,7 +12,7 @@ Tmp File Cleanerを使って、定期的に一時ファイルを削除してこ�
 YAML形式で記載します。
 
 target : 削除対象の情報を記載します
-    - folders : 削除対象のディレクトリを配列で記載します。
+    - folders : 削除対象のディレクトリパス(絶対パス)を配列で記載します。
 
 ``` config.yaml
 target: 
