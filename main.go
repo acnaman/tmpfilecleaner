@@ -65,10 +65,12 @@ func DeleteFile(f string) {
 
 		files, err := ioutil.ReadDir(f)
 		if err != nil {
+			log.Fatal(err)
 			fmt.Println("warning: cannot read directory: " + f)
-		}
-		for _, file := range files {
-			os.RemoveAll(file.Name())
+		} else {
+			for _, file := range files {
+				os.RemoveAll(file.Name())
+			}
 		}
 	}
 }
