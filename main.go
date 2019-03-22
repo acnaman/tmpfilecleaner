@@ -70,9 +70,11 @@ func DeleteFile(f string) {
 			fmt.Println("warning: cannot read directory: " + f)
 		} else {
 			for _, file := range files {
-				fmt.Println("削除：" + file.Name())
+				fmt.Printf("削除中：" + file.Name() + "\r")
 				os.RemoveAll(file.Name())
+				fmt.Printf("                                           \r")
 			}
+			fmt.Println("")
 		}
 	}
 }
