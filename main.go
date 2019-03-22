@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
-	"fmt"
 
 	"github.com/urfave/cli"
 
@@ -61,6 +61,7 @@ func DeleteFile(f string) {
 
 	// 対象ディレクトリ内のファイルを削除する
 	for _, f := range targetFolders.Folders {
+		fmt.Println("ディレクトリ[" + f + "]内のファイルをすべて削除します")
 		os.Chdir(f)
 
 		files, err := ioutil.ReadDir(f)
@@ -69,10 +70,9 @@ func DeleteFile(f string) {
 			fmt.Println("warning: cannot read directory: " + f)
 		} else {
 			for _, file := range files {
+				fmt.Println("削除：" + file.Name())
 				os.RemoveAll(file.Name())
 			}
 		}
 	}
 }
-
-
