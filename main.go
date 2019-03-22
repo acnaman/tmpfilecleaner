@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -33,10 +34,14 @@ func main() {
 			Value: "config.yaml",
 			Usage: "Config file(YAML)",
 		},
+		cli.BoolFlag{
+			Name:  "Yes, Y",
+			Usage: "Unshow confirm message",
+		},
 	}
 
 	app.Action = func(c *cli.Context) error {
-		DeleteFile(c.String("file"))
+		DeleteFile(c.String("file"), c.Bool("Yes"))
 		return nil
 	}
 
@@ -44,7 +49,7 @@ func main() {
 }
 
 // DeleteFile :設定ファイル情報を元にデータを削除する
-func DeleteFile(f string) {
+func DeleteFile(f string, skipconfirm bool) {
 	configfile := f
 
 	data, err := ioutil.ReadFile(configfile)
@@ -61,7 +66,17 @@ func DeleteFile(f string) {
 
 	// 対象ディレクトリ内のファイルを削除する
 	for _, f := range targetFolders.Folders {
-		fmt.Println("ディレクトリ[" + f + "]内のファイルをすべて削除します")
+		fmt.Printf("ディレクトリ[" + f + "]内のファイルをすべて削除します。")
+		if skipconfirm {
+			fmt.Println("")
+		} else {
+			fmt.Println("よろしいですか？[Y/n]")
+			scanner := bufio.NewScanner(os.Stdin)
+			scanner.Scan()
+			if scanner.Text() != "Y" {
+				continue
+			}
+		}
 		os.Chdir(f)
 
 		files, err := ioutil.ReadDir(f)
