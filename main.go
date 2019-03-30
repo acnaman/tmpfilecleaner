@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-
+	"time"
 	"github.com/urfave/cli"
 
 	yaml "gopkg.in/yaml.v2"
@@ -38,10 +38,14 @@ func main() {
 			Name:  "Yes, Y",
 			Usage: "Unshow confirm message",
 		},
+		cli.BoolFlag{
+			Name:  "trash, t",
+			Usage: "move files into trash can",
+		},
 	}
 
 	app.Action = func(c *cli.Context) error {
-		DeleteFile(c.String("file"), c.Bool("Yes"))
+		DeleteFile(c.String("file"), c.Bool("Yes"), c.Bool("trash"))
 		return nil
 	}
 
@@ -49,8 +53,9 @@ func main() {
 }
 
 // DeleteFile :設定ファイル情報を元にデータを削除する
-func DeleteFile(f string, skipconfirm bool) {
+func DeleteFile(f string, skipconfirm bool, trashmode bool) {
 	configfile := f
+	t := time.Now()
 
 	data, err := ioutil.ReadFile(configfile)
 	if err != nil {
@@ -60,6 +65,17 @@ func DeleteFile(f string, skipconfirm bool) {
 	yaml.Unmarshal(data, &config)
 	if err != nil {
 		log.Fatalf("cannot unmarshal data: %v", err)
+	}
+	
+	// ゴミ箱モードの時は退避用ディレクトリ(名前は日付)を作成する
+	if trashmode {
+		exe := os.Executable()
+		exedir := filepath.Dir(exe)
+		os.Chdir(exedir)
+		if err := os.MkdirAll("_trash/" + t.Day(), 0777); err != nil {
+			fmt.Println(err)
+		}
+	
 	}
 
 	targetFolders := config.Target
