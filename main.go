@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 	"github.com/urfave/cli"
+	"strconv"
+	"path/filepath"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -15,11 +17,17 @@ import (
 // Config :YAMLの全体
 type Config struct {
 	Target TargetConfig `yaml:"target"`
+	Trash TrashConfig `yaml:"trash"`
 }
 
 // TargetConfig :削除対象についての情報
 type TargetConfig struct {
 	Folders []string `yaml:"folders"`
+}
+
+// TrashConfig :ゴミ箱情報
+type TrashConfig struct {
+	Directory string `yaml:"directory"`
 }
 
 func main() {
@@ -45,67 +53,67 @@ func main() {
 	}
 
 	app.Action = func(c *cli.Context) error {
-		DeleteFile(c.String("file"), c.Bool("Yes"), c.Bool("trash"))
+
+		configfile := c.String("file")
+		skipconfirm := c.Bool("Yes")
+		trashmode := c.Bool("trash")
+
+		t := time.Now()
+	
+		data, err := ioutil.ReadFile(configfile)
+		if err != nil {
+			log.Fatalf("cannot read config file: %v", err)
+		}
+		var config Config
+		yaml.Unmarshal(data, &config)
+		if err != nil {
+			log.Fatalf("cannot unmarshal data: %v", err)
+		}
+		
+		// ゴミ箱モードの時は退避用ディレクトリ(名前は日付)を作成する
+		if trashmode {
+			fmt.Println(config.Trash.Directory)
+			trashdir := filepath.Join(config.Trash.Directory, strconv.Itoa(t.Day()))
+			fmt.Println(trashdir)
+
+			if err := os.MkdirAll(trashdir, 0777); err != nil {
+				fmt.Println(err)
+			}
+		
+		}
+	
+		targetFolders := config.Target
+	
+		// 対象ディレクトリ内のファイルを削除する
+		for _, f := range targetFolders.Folders {
+			fmt.Printf("ディレクトリ[" + f + "]内のファイルをすべて削除します。")
+			if skipconfirm {
+				fmt.Println("")
+			} else {
+				fmt.Println("よろしいですか？[Y/n]")
+				scanner := bufio.NewScanner(os.Stdin)
+				scanner.Scan()
+				if scanner.Text() != "Y" {
+					continue
+				}
+			}
+			os.Chdir(f)
+	
+			files, err := ioutil.ReadDir(f)
+			if err != nil {
+				log.Fatal(err)
+				fmt.Println("warning: cannot read directory: " + f)
+			} else {
+				for _, file := range files {
+					fmt.Printf("削除中：" + file.Name() + "\r")
+					os.RemoveAll(file.Name()
+					fmt.Printf("                                           \r")
+				}
+				fmt.Println("")
+			}
+		}
 		return nil
 	}
 
 	app.Run(os.Args)
-}
-
-// DeleteFile :設定ファイル情報を元にデータを削除する
-func DeleteFile(f string, skipconfirm bool, trashmode bool) {
-	configfile := f
-	t := time.Now()
-
-	data, err := ioutil.ReadFile(configfile)
-	if err != nil {
-		log.Fatalf("cannot read config file: %v", err)
-	}
-	var config Config
-	yaml.Unmarshal(data, &config)
-	if err != nil {
-		log.Fatalf("cannot unmarshal data: %v", err)
-	}
-	
-	// ゴミ箱モードの時は退避用ディレクトリ(名前は日付)を作成する
-	if trashmode {
-		exe := os.Executable()
-		exedir := filepath.Dir(exe)
-		os.Chdir(exedir)
-		if err := os.MkdirAll("_trash/" + t.Day(), 0777); err != nil {
-			fmt.Println(err)
-		}
-	
-	}
-
-	targetFolders := config.Target
-
-	// 対象ディレクトリ内のファイルを削除する
-	for _, f := range targetFolders.Folders {
-		fmt.Printf("ディレクトリ[" + f + "]内のファイルをすべて削除します。")
-		if skipconfirm {
-			fmt.Println("")
-		} else {
-			fmt.Println("よろしいですか？[Y/n]")
-			scanner := bufio.NewScanner(os.Stdin)
-			scanner.Scan()
-			if scanner.Text() != "Y" {
-				continue
-			}
-		}
-		os.Chdir(f)
-
-		files, err := ioutil.ReadDir(f)
-		if err != nil {
-			log.Fatal(err)
-			fmt.Println("warning: cannot read directory: " + f)
-		} else {
-			for _, file := range files {
-				fmt.Printf("削除中：" + file.Name() + "\r")
-				os.RemoveAll(file.Name())
-				fmt.Printf("                                           \r")
-			}
-			fmt.Println("")
-		}
-	}
 }

@@ -3,4 +3,7 @@ target:
 #        - /path/to/the/target/folder1
 #        - /path/to/the/target/folder2
 
+trash:
+#    directory: /path/to/the/trash/folder
+
 
