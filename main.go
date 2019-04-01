@@ -6,10 +6,11 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"time"
-	"github.com/urfave/cli"
-	"strconv"
 	"path/filepath"
+	"strconv"
+	"time"
+
+	"github.com/urfave/cli"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -17,7 +18,7 @@ import (
 // Config :YAMLの全体
 type Config struct {
 	Target TargetConfig `yaml:"target"`
-	Trash TrashConfig `yaml:"trash"`
+	Trash  TrashConfig  `yaml:"trash"`
 }
 
 // TargetConfig :削除対象についての情報
@@ -59,7 +60,7 @@ func main() {
 		trashmode := c.Bool("trash")
 
 		t := time.Now()
-	
+
 		data, err := ioutil.ReadFile(configfile)
 		if err != nil {
 			log.Fatalf("cannot read config file: %v", err)
@@ -69,21 +70,18 @@ func main() {
 		if err != nil {
 			log.Fatalf("cannot unmarshal data: %v", err)
 		}
-		
-		// ゴミ箱モードの時は退避用ディレクトリ(名前は日付)を作成する
-		if trashmode {
-			fmt.Println(config.Trash.Directory)
-			trashdir := filepath.Join(config.Trash.Directory, strconv.Itoa(t.Day()))
-			fmt.Println(trashdir)
 
+		// ゴミ箱モードの時は退避用ディレクトリ(名前は日付)を作成する
+		trashdir := filepath.Join(config.Trash.Directory, strconv.Itoa(t.Day()))
+		if trashmode {
 			if err := os.MkdirAll(trashdir, 0777); err != nil {
 				fmt.Println(err)
 			}
-		
+
 		}
-	
+
 		targetFolders := config.Target
-	
+
 		// 対象ディレクトリ内のファイルを削除する
 		for _, f := range targetFolders.Folders {
 			fmt.Printf("ディレクトリ[" + f + "]内のファイルをすべて削除します。")
@@ -98,7 +96,7 @@ func main() {
 				}
 			}
 			os.Chdir(f)
-	
+
 			files, err := ioutil.ReadDir(f)
 			if err != nil {
 				log.Fatal(err)
@@ -106,7 +104,10 @@ func main() {
 			} else {
 				for _, file := range files {
 					fmt.Printf("削除中：" + file.Name() + "\r")
-					os.RemoveAll(file.Name()
+					if trashmode {
+						CopyAll(trashdir, filepath.Join(f, file.Name()))
+					}
+					os.RemoveAll(file.Name())
 					fmt.Printf("                                           \r")
 				}
 				fmt.Println("")
@@ -116,4 +117,10 @@ func main() {
 	}
 
 	app.Run(os.Args)
+}
+
+// CopyAll ファイル、ディレクトリ(サブディレクトリ含む)をコピーする
+func CopyAll(srcdir string, dstdir string) {
+	// TODO:
+	return
 }
