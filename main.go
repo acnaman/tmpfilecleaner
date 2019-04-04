@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -77,14 +78,13 @@ func main() {
 			if err := os.MkdirAll(trashdir, 0777); err != nil {
 				fmt.Println(err)
 			}
-
 		}
 
 		targetFolders := config.Target
 
 		// 対象ディレクトリ内のファイルを削除する
-		for _, f := range targetFolders.Folders {
-			fmt.Printf("ディレクトリ[" + f + "]内のファイルをすべて削除します。")
+		for _, folder := range targetFolders.Folders {
+			fmt.Printf("ディレクトリ[" + folder + "]内のファイルをすべて削除します。")
 			if skipconfirm {
 				fmt.Println("")
 			} else {
@@ -95,18 +95,21 @@ func main() {
 					continue
 				}
 			}
-			os.Chdir(f)
 
-			files, err := ioutil.ReadDir(f)
+			// ゴミ箱モードの時はファイルを退避する
+			if trashmode {
+				CopyAll(folder, trashdir)
+			}
+
+			os.Chdir(folder)
+
+			files, err := ioutil.ReadDir(folder)
 			if err != nil {
 				log.Fatal(err)
-				fmt.Println("warning: cannot read directory: " + f)
+				fmt.Println("warning: cannot read directory: " + folder)
 			} else {
 				for _, file := range files {
 					fmt.Printf("削除中：" + file.Name() + "\r")
-					if trashmode {
-						CopyAll(trashdir, filepath.Join(f, file.Name()))
-					}
 					os.RemoveAll(file.Name())
 					fmt.Printf("                                           \r")
 				}
@@ -120,7 +123,47 @@ func main() {
 }
 
 // CopyAll ファイル、ディレクトリ(サブディレクトリ含む)をコピーする
-func CopyAll(srcdir string, dstdir string) {
-	// TODO:
+func CopyAll(src string, dst string) {
+	fInfo, _ := os.Stat(src)
+	if fInfo.IsDir() {
+		fmt.Println("directory copy:" + fInfo.Name())
+		// ディレクトリの場合はコピー先にディレクトリを作成してから中身をコピーする
+		newdir := filepath.Join(dst,fInfo.Name())
+		os.Mkdir(newdir, 0777)
+		files, err := ioutil.ReadDir(src)
+		if err != nil {
+			log.Fatal(err)
+			fmt.Println("warning: cannot read directory: " + src)
+		} else {
+			for _, file := range files {
+				CopyAll(filepath.Join(src,file.Name()), newdir)
+			}
+		}
+	} else {
+		// ファイルの場合
+		fmt.Println("file copy:" + fInfo.Name())
+		Copy(src , filepath.Join(dst ,fInfo.Name()))
+	}
 	return
+}
+
+// Copy ファイルをコピーする
+func Copy(srcfile string, dstfile string){
+
+    src, err := os.Open(srcfile)
+    if err != nil {
+        panic(err)
+    }
+    defer src.Close()
+
+    dst, err := os.Create(dstfile)
+    if err != nil {
+        panic(err)
+    }
+    defer dst.Close()
+
+    _, err = io.Copy(dst, src)
+    if  err != nil {
+        panic(err)
+    }
 }
