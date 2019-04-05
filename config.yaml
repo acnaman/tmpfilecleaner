@@ -1,9 +1,13 @@
 target: 
     folders: 
+        - C:\git\tmpfilecleaner\test\deletedir\1
 #        - /path/to/the/target/folder1
 #        - /path/to/the/target/folder2
 
 trash:
+    trashmode: true
+    directory: C:\git\tmpfilecleaner\test\trashdir
+#    trashmode: true
 #    directory: /path/to/the/trash/folder
 
 

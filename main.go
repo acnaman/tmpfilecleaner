@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/urfave/cli"
@@ -28,6 +29,7 @@ type TargetConfig struct {
 
 // TrashConfig :ゴミ箱情報
 type TrashConfig struct {
+	Trashmode string `yaml:"trashmode"`
 	Directory string `yaml:"directory"`
 }
 
@@ -47,17 +49,17 @@ func main() {
 			Name:  "Yes, Y",
 			Usage: "Unshow confirm message",
 		},
-		cli.BoolFlag{
-			Name:  "trash, t",
-			Usage: "move files into trash can",
-		},
+		/*		cli.BoolFlag{
+				Name:  "trash, t",
+				Usage: "move files into trash can",
+			},*/
 	}
 
 	app.Action = func(c *cli.Context) error {
 
 		configfile := c.String("file")
 		skipconfirm := c.Bool("Yes")
-		trashmode := c.Bool("trash")
+		//trashmode := c.Bool("trash")
 
 		t := time.Now()
 
@@ -70,6 +72,9 @@ func main() {
 		if err != nil {
 			log.Fatalf("cannot unmarshal data: %v", err)
 		}
+
+		trashmode := (strings.ToLower(config.Trash.Trashmode) == "true")
+		fmt.Println(trashmode)
 
 		// ゴミ箱モードの時は退避用ディレクトリ(名前は日付)を作成する
 		trashdir := filepath.Join(config.Trash.Directory, strconv.Itoa(t.Day()))
@@ -105,6 +110,7 @@ func main() {
 				for _, file := range files {
 					fmt.Printf("削除中：" + file.Name() + "\r")
 					if trashmode {
+						fmt.Println(filepath.Join(f, file.Name()))
 						CopyAll(trashdir, filepath.Join(f, file.Name()))
 					}
 					os.RemoveAll(file.Name())
