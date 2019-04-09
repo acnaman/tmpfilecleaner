@@ -130,6 +130,9 @@ func main() {
 // CopyAll ファイル、ディレクトリ(サブディレクトリ含む)をコピーする
 func CopyAll(src string, dst string) {
 	fInfo, _ := os.Stat(src)
+	if fInfo == nil {
+		return
+	}
 	if fInfo.IsDir() {
 		fmt.Println("directory copy:" + fInfo.Name())
 		// ディレクトリの場合はコピー先にディレクトリを作成してから中身をコピーする
