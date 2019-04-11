@@ -77,12 +77,22 @@ func main() {
 		trashmode := (strings.ToLower(config.Trash.Trashmode) == "true")
 		fmt.Println(trashmode)
 
-		// ゴミ箱モードの時は退避用ディレクトリ(名前は日付)を作成する
+		// ゴミ箱モード
 		trashdir := filepath.Join(config.Trash.Directory, strconv.Itoa(t.Day()))
 		if trashmode {
+			// 退避用ディレクトリ(名前は日付)を作成する
 			if err := os.MkdirAll(trashdir, 0777); err != nil {
 				fmt.Println(err)
 			}
+			// 退避ディレクトリの削除期限を記録する
+			timenow := time.Now()
+			deletedate := timenow.AddDate(0, 1, 0).Format("2006-01-02")
+			file, err := os.OpenFile(filepath.Join(config.Trash.Directory, ".deletedate"), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+			if err != nil {
+				panic(err)
+			}
+			defer file.Close()
+			fmt.Fprintln(file, deletedate+" : "+trashdir)
 		}
 
 		targetFolders := config.Target
