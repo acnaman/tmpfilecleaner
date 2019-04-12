@@ -80,19 +80,30 @@ func main() {
 		// ゴミ箱モード
 		trashdir := filepath.Join(config.Trash.Directory, strconv.Itoa(t.Day()))
 		if trashmode {
-			// 退避用ディレクトリ(名前は日付)を作成する
-			if err := os.MkdirAll(trashdir, 0777); err != nil {
-				fmt.Println(err)
-			}
-			// 退避ディレクトリの削除期限を記録する
 			timenow := time.Now()
-			deletedate := timenow.AddDate(0, 1, 0).Format("2006-01-02")
+			datelayout := "2006-01-02"
+			separator := " ｜ "
+			// ゴミ箱ディレクトリの削除期限を確認し、過ぎてるものは完全削除する
 			file, err := os.OpenFile(filepath.Join(config.Trash.Directory, ".deletedate"), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 			if err != nil {
 				panic(err)
 			}
 			defer file.Close()
-			fmt.Fprintln(file, deletedate+" : "+trashdir)
+
+			var deletedirlist []string
+			scanner := bufio.NewScanner(file)
+			for scanner.Scan() {
+				line := scanner.Text()
+				// 日付の抽出
+			}
+
+			// 退避用ディレクトリ(名前は日付)を作成する
+			if err := os.MkdirAll(trashdir, 0777); err != nil {
+				fmt.Println(err)
+			}
+			// 退避ディレクトリの削除期限を記録する
+			deletedate := timenow.AddDate(0, 1, 0).Format(datelayout)
+			fmt.Fprintln(file, deletedate+separator+trashdir)
 		}
 
 		targetFolders := config.Target
