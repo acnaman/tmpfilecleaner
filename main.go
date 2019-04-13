@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"regexp"
 
 	"github.com/urfave/cli"
 
@@ -95,7 +96,18 @@ func main() {
 			for scanner.Scan() {
 				line := scanner.Text()
 				// 日付の抽出
+				assined := regexp.MustCompile("[0-9]*-[0-9]*-[0-9]*")
+				dateb := assined.Find([]byte(line))
+
+				if dateb != nil {
+					deletedatestr := string(dateb)
+					timedeletedate, _ := time.Parse(datelayout, deletedatestr)
+					if timedeletedate.Equal(timenow) || timedeletedate.Before(timenow) {
+						deletedirlist = append(deletedirlist, deletedatestr)
+					}
+				}
 			}
+			fmt.Println(deletedirlist)
 
 			// 退避用ディレクトリ(名前は日付)を作成する
 			if err := os.MkdirAll(trashdir, 0777); err != nil {
